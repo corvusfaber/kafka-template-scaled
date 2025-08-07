@@ -1,0 +1,76 @@
+name: CI-CD-node-app
+
+#trigger
+on:
+  push:
+    branches:
+      - master
+    
+#jobs
+jobs:
+  # build-and-push:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Log into docker Hub
+  #       uses: docker/login-action@v3
+  #       with: 
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: Build and push
+  #       uses: docker/build-push-action@v6
+  #       with:
+  #         push: true
+  #         tags: malcolmcfraser/testdome-nodeapp:latest
+  apply-manifest:
+    runs-on: ubuntu-latest
+    #needs: build-and-push
+    steps:
+      - name: Checkout code.
+        uses: actions/checkout@v3
+
+      - name: Set up Minikube
+        run: |
+          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          sudo mv minikube-linux-amd64 /usr/local/bin/minikube
+          sudo chmod +x /usr/local/bin/minikube
+          minikube start --driver=docker
+
+      - name: Setup up kubectl
+        uses: azure/setup-kubectl@v3
+        with: 
+          version: 'latest'
+      
+      - name: Configure kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig
+
+      - name: Verify kubectl connection
+        run: kubectl get nodes
+
+      - name: Create Kafka namespace
+        run: kubectl create namespace kafka || true
+        
+      - name: Apply Kubernetes manifest
+        run: helm install kafka-template ./kafka-template
+     
+      - name: Verify Kafka deployment
+        run: kubectl rollout status statefulset/kafka -n kafka
+
+      - name: Verify Kafka service
+        run: kubectl get svc kafka-svc -n kafka
+
+      - name: Start minikube service kafka-svc
+        run: minikube service kafka-svc --namespace kafka --url
+
+      - name: Create test-topic on pod
+        run: |
+             kubectl exec kafka-0 -n kafka -- /bin/bash -c "kafka-topics.sh --create --topic test-topic --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1"
+
+      - name: Send message to Kafka topic
+        run: |
+             kubectl exec kafka-0 -n kafka -- /bin/bash -c "echo 'Hello, Kafka!' | kafka-console-producer.sh --topic test-topic --bootstrap-server localhost:9092"
+
+      - name: Consume message from Kafka topic
+        run: |
+             kubectl exec kafka-1 -n kafka -- /bin/bash -c "kafka-console-consumer.sh --topic test-topic --bootstrap-server localhost:9092 --from-beginning  --max-messages 1"

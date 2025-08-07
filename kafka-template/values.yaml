@@ -1,0 +1,38 @@
+statefulset:
+  name: kafka
+  namespace: kafka
+  replicas: 3
+  appname: kafka-app
+  serviceName: kafka-svc
+  image: doughgle/kafka-kraft
+  ports:
+    - containerPort: 9092
+    - containerPort: 9093
+  env:
+    - name: REPLICAS
+      value: '3'
+    - name: SERVICE
+      value: kafka-svc
+    - name: NAMESPACE
+      value: kafka
+    - name: SHARE_DIR
+      value: /mnt/kafka
+    - name: CLUSTER_ID
+      value: bXktY2x1c3Rlci0xMjM0NQ==
+    - name: DEFAULT_REPLICATION_FACTOR
+      value: '3'
+    - name: DEFAULT_MIN_INSYNC_REPLICAS
+      value: '2'
+
+service:
+  name: kafka-svc
+  namespace: kafka
+  replicas: 3
+  appname: kafka-app
+  type: NodePort
+  ports:
+    - name: "9092"
+      port: 9092
+      targetPort: 9092
+      nodePort: 30092
+

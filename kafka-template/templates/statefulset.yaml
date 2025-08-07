@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.statefulset.name }}
+  namespace: {{ .Values.statefulset.namespace | default "kafka" }}
+  labels:
+    app: {{ .Values.statefulset.appname | default "kafka-app" }}
+spec:
+  serviceName: {{ .Values.statefulset.serviceName | default "kafka-svc" }}
+  replicas: {{ .Values.statefulset.replicas | default 3 }}
+  selector:
+    matchLabels:
+      app: {{ .Values.statefulset.appname | default "kafka-app" }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.statefulset.appname | default "kafka-app" }}
+    spec:
+      containers:
+        - name: kafka-container
+          image: {{ .Values.statefulset.image | default "doughgle/kafka-kraft" }}
+          ports:
+            {{- range .Values.statefulset.ports }}
+              - containerPort: {{ .containerPort }}
+            {{- end }}
+          env:
+            {{- range .Values.statefulset.env }}
+              - name: {{ .name }}
+                value: "{{ .value }}"
+                {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /mnt/kafka
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "1Gi"
