@@ -52,7 +52,7 @@ jobs:
         run: kubectl create namespace kafka || true
         
       - name: Apply Kubernetes manifest
-        run: helm install kafka-template ./kafka-template
+        run: helm install kafka-template ./kafka-template-scaled
      
       - name: Verify Kafka deployment
         run: kubectl rollout status statefulset/kafka -n kafka
