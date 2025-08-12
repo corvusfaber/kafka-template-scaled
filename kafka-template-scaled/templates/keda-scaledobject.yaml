@@ -1,0 +1,21 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "kafka-template.fullname" . }} 
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    name: {{ .Values.statefulset.name }}
+    kind: StatefulSet
+    apiVersion: apps/v1
+  minReplicaCount: {{ .Values.keda.minReplicas | default 1}}
+  maxReplicaCount: {{ .Values.keda.maxReplicas | default 5}}
+  triggers:
+    - type: kafka
+      metadata:
+        topic: {{ .Values.keda.topic }}
+        bootstrapServers: {{ .Values.keda.bootstrapServers }}
+        consumerGroup: {{ .Values.keda.consumerGroup }}
+        lagThreshold: "{{ .Values.keda.lagThreshold }}"
+{{- end }}

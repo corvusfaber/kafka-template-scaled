@@ -36,3 +36,11 @@ service:
       targetPort: 9092
       nodePort: 30092
 
+keda:
+  enabled: true
+  bootstrapServers: kafka-0.kafka-svc.kafka:9092
+  topic: my-topic
+  consumerGroup: my-consumer-group
+  lagThreshold: "10"
+  minReplicaCount: 1
+  maxReplicaCount: 5
