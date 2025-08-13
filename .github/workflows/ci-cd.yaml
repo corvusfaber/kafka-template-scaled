@@ -4,7 +4,7 @@ name: CI-CD-node-app
 on:
   push:
     branches:
-      - mf-fix-regression-tests
+      - master
     
 #jobs
 jobs:
