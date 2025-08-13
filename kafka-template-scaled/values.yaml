@@ -37,7 +37,7 @@ service:
       nodePort: 30092
 
 keda:
-  enabled: true
+  enabled: false
   bootstrapServers: kafka-0.kafka-svc.kafka:9092
   topic: my-topic
   consumerGroup: my-consumer-group
