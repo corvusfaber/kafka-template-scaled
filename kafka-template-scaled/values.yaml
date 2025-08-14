@@ -37,6 +37,7 @@ service:
       nodePort: 30092
 
 keda:
+  namespace: kafka
   enabled: true
   bootstrapServers: kafka-svc.kafka:9092
   topic: my-topic
