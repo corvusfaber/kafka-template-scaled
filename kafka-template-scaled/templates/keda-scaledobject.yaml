@@ -3,7 +3,7 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: {{ include "kafka-template.fullname" . }} 
-  namespace: {{ .Values.statefulset.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   scaleTargetRef:
     name: {{ .Values.statefulset.name }}
