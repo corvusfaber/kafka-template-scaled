@@ -37,8 +37,8 @@ service:
       nodePort: 30092
 
 keda:
-  enabled: false
-  bootstrapServers: kafka-0.kafka-svc.kafka:9092
+  enabled: true
+  bootstrapServers: kafka-svc.kafka:9092
   topic: my-topic
   consumerGroup: my-consumer-group
   lagThreshold: "10"
