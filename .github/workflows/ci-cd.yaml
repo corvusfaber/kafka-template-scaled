@@ -52,7 +52,7 @@ jobs:
         run: kubectl create namespace kafka || true
 
       - name: Install Keda CRD
-        run: kubectl apply -f https://github.com/kedacore/keda/releases/download/v2.11.0/keda-2.11.0.yaml
+        run: kubectl apply -f https://github.com/kedacore/keda/releases/download/v2.11.0/keda-2.11.0-crds.yaml
         
       - name: Wait for KEDA CRDs
         run: |
@@ -64,7 +64,7 @@ jobs:
           done
 
       - name: Apply Kubernetes manifest
-        run: helm install kafka-template ./kafka-template-scaled -n kafka
+        run: helm install kafka-template ./kafka-template-scaled -n kafka --skip-crds
      
       - name: Verify Kafka deployment
         run: kubectl rollout status statefulset/kafka -n kafka
