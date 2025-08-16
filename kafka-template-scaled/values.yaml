@@ -43,5 +43,5 @@ keda:
   topic: my-topic
   consumerGroup: my-consumer-group
   lagThreshold: "10"
-  minReplicaCount: 1
+  minReplicaCount: 3
   maxReplicaCount: 5
