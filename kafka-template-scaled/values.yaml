@@ -36,6 +36,12 @@ service:
       targetPort: 9092
       nodePort: 30092
 
+consumer:
+  namespace: kafka
+  name: kafka-consumer
+  bootstrapServers: kafka-svc.kafka:9092
+  replicas: 3
+
 keda:
   namespace: kafka
   enabled: true
@@ -45,3 +51,4 @@ keda:
   lagThreshold: "10"
   minReplicaCount: 3
   maxReplicaCount: 5
+  ScaledObject: kafka-consumer

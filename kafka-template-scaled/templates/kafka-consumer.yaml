@@ -1,23 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kafka-consumer
-  namespace: kafka
+  name: {{ .Values.consumer.name }}
+  namespace: {{ .Values.consumer.namespace }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.consumer.replicas | default 3}}
   selector:
     matchLabels:
-      app: kafka-consumer
+      app: {{ .Values.consumer.name }}
   template:
     metadata:
       labels:
-        app: kafka-consumer
+        app: {{ .Values.consumer.name }}
     spec:
       containers:
         - name: consumer
           image: bitnami/kafka:3.7.0
-          command:
-            - "sh"
-            - "-c"
-            - |
-              kafka-console-consumer.sh --bootstrap-server kafka-svc.kafka:9092 --topic new-demo-topic --from-beginning
+          command: ["kafka-console-consumer.sh"]
+          args:
+            - "--bootstrap-server"
+            - "{{ .Values.consumer.bootstrapServers }}"
+            - "--topic"
+            - "{{ .Values.consumer.topic }}"
+            - "--group"
+            - "{{ .Values.consumer.consumerGroup }}"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+     
