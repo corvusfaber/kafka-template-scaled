@@ -67,8 +67,14 @@ jobs:
       - name: Apply Kubernetes manifest
         run: helm upgrade --install kafka-template ./kafka-template-scaled -n kafka --skip-crds
      
-      - name: Verify Kafka deployment
+      - name: Verify Kafka statefulset
         run: kubectl rollout status statefulset/kafka -n kafka
+
+      - name: Verify Kafka consumer deployment
+        run: kubectl rollout status deployment/kafka-consumer -n kafka
+
+      - name: Verify Kafka producer deployment
+        run: kubectl rollout status deployment/kafka-producer -n kafka
 
       - name: Verify Kafka service
         run: kubectl get svc kafka-svc -n kafka
