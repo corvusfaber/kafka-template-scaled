@@ -34,13 +34,13 @@ spec:
                 mountPath: {{ .mountPath }}
             {{- end }}
   volumeClaimTemplates:
+          {{- range .Values.statefulset.volumeClaimTemplatesSpec }}
     - metadata:
-        name: {{ .Values.statefulset.volumeMounts.name}}
+        name: {{ .name }}
       spec:
-        {{- range .Values.statefulset.volumeClaimTemplatesSpec }}
         accessModes:
           - {{ .accessMode }}
         resources:
           requests:
             storage: {{ .storage }}
-         {{- end }}
+          {{- end }}

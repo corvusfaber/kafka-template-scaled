@@ -28,6 +28,7 @@ statefulset:
     - name: data
       mountPath: /mnt/kafka
   volumeClaimTemplatesSpec:
+    - name: data
     - accessMode: "ReadWriteOnce"
     - storage: "1Gi"
 
