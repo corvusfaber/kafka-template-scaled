@@ -84,7 +84,7 @@ jobs:
 
       - name: Create test-topic on broker
         run: |
-             kubectl exec kafka-0 -n kafka -- /bin/bash -c "kafka-topics.sh --create --topic test-topic --bootstrap-server kafka-svc.kafka:9092 --replication-factor 3 --partitions 1"
+             kubectl exec kafka-0 -n kafka -- /bin/bash -c "kafka-topics.sh --create --topic test-topic --bootstrap-server kafka-svc.kafka:9092 --replication-factor 1 --partitions 1"
 
       - name: Send message to Kafka topic from producer
         run: |
