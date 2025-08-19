@@ -88,7 +88,7 @@ jobs:
 
       - name: Send message to Kafka topic from producer
         run: |
-             kubectl exec $(kubectl get pod -n kafka -l app=my-producer -o jsonpath='{.items[0].metadata.name}') -n kafka -- /bin/bash -c "echo 'Hello, Kafka!' | kafka-console-producer.sh --topic test-topic --bootstrap-server kafka-svc.kafka:9092"
+             kubectl exec $(kubectl get pod -n kafka -l app=kafka-producer -o jsonpath='{.items[0].metadata.name}') -n kafka -- /bin/bash -c "echo 'Hello, Kafka!' | kafka-console-producer.sh --topic test-topic --bootstrap-server kafka-svc.kafka:9092"
 
       - name: Consume message from Kafka topic
         run: |
