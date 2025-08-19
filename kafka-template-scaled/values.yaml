@@ -46,7 +46,7 @@ keda:
   namespace: kafka
   enabled: true
   bootstrapServers: kafka-svc.kafka:9092
-  topic: my-topic
+  topic: new-demo-topic
   consumerGroup: my-consumer-group
   lagThreshold: "10"
   minReplicaCount: 3
