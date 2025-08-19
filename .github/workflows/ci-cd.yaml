@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - mf-helm-template-abstraction
     
 #jobs
 jobs:
