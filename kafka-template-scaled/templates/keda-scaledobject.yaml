@@ -6,11 +6,11 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   scaleTargetRef:
-    name: {{ .Values.statefulset.name }}
-    kind: StatefulSet
+    name: {{ .Values.keda.ScaledObject}}
+    kind: Deployment
     apiVersion: apps/v1
-  minReplicaCount: {{ .Values.keda.minReplicas | default 1}}
-  maxReplicaCount: {{ .Values.keda.maxReplicas | default 5}}
+  minReplicaCount: {{ .Values.keda.minReplicaCount | default 1}}
+  maxReplicaCount: {{ .Values.keda.maxReplicaCount | default 5}}
   triggers:
     - type: kafka
       metadata:
