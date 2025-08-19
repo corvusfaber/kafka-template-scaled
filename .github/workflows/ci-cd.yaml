@@ -76,14 +76,14 @@ jobs:
       - name: Start minikube service kafka-svc
         run: minikube service kafka-svc --namespace kafka --url
 
-      - name: Create test-topic on pod
+      - name: Create test-topic on broker
         run: |
              kubectl exec kafka-0 -n kafka -- /bin/bash -c "kafka-topics.sh --create --topic test-topic --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1"
 
-      - name: Send message to Kafka topic
+      - name: Send message to Kafka topic from producer
         run: |
-             kubectl exec kafka-0 -n kafka -- /bin/bash -c "echo 'Hello, Kafka!' | kafka-console-producer.sh --topic test-topic --bootstrap-server localhost:9092"
+             kubectl exec $(kubectl get pod -n kafka -l app=my-producer -o jsonpath='{.items[0].metadata.name}') -n kafka -- /bin/bash -c "echo 'Hello, Kafka!' | kafka-console-producer.sh --topic test-topic --bootstrap-server kafka-svc.kafka:9092"
 
       - name: Consume message from Kafka topic
         run: |
-             kubectl exec kafka-1 -n kafka -- /bin/bash -c "kafka-console-consumer.sh --topic test-topic --bootstrap-server localhost:9092 --from-beginning  --max-messages 1"
+             kubectl exec $(kubectl get pods -n kafka -l app=kafka-consumer -o jsonpath='{.items[0].metadata.name}') -n kafka -- /bin/bash -c "kafka-console-consumer.sh --topic test-topic --bootstrap-server kafka-svc.kafka:9092 --from-beginning  --max-messages 1"
