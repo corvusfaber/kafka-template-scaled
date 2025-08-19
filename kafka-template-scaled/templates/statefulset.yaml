@@ -4,20 +4,20 @@ metadata:
   name: {{ .Values.statefulset.name }}
   namespace: {{ .Values.statefulset.namespace | default "kafka" }}
   labels:
-    app: {{ .Values.statefulset.appname | default "kafka-app" }}
+    app: {{ .Values.statefulset.appname }}
 spec:
   serviceName: {{ .Values.statefulset.serviceName | default "kafka-svc" }}
-  replicas: {{ .Values.statefulset.replicas | default 3 }}
+  replicas: {{ .Values.statefulset.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.statefulset.appname | default "kafka-app" }}
+      app: {{ .Values.statefulset.appname }}
   template:
     metadata:
       labels:
-        app: {{ .Values.statefulset.appname | default "kafka-app" }}
+        app: {{ .Values.statefulset.appname }}
     spec:
       containers:
-        - name: kafka-container
+        - name: {{ .Values.statefulset.conatainerName }}
           image: {{ .Values.statefulset.image | default "doughgle/kafka-kraft" }}
           ports:
             {{- range .Values.statefulset.ports }}
@@ -29,14 +29,18 @@ spec:
                 value: "{{ .value }}"
                 {{- end }}
           volumeMounts:
-            - name: data
-              mountPath: /mnt/kafka
+            {{- range .Values.statefulset.volumeMounts }}
+              - name: {{ .name }}
+                mountPath: {{ .mountPath }}
+            {{- end }}
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: {{ .Values.statefulset.volumeMounts.name}}
       spec:
+        {{- range .Values.statefulset.volumeClaimTemplatesSpec }}
         accessModes:
-          - "ReadWriteOnce"
+          - {{ .accessMode }}
         resources:
           requests:
-            storage: "1Gi"
+            storage: {{ .storage }}
+         {{- end }}
