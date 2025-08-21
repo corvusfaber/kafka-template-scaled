@@ -6,8 +6,10 @@ statefulset:
   serviceName: kafka-svc
   image: doughgle/kafka-kraft
   ports:
-    - containerPort: 9092
-    - containerPort: 9093
+    - name: kafka
+      containerPort: 9092
+    - name: controller
+      containerPort: 9093
   env:
     - name: REPLICAS
       value: '3'

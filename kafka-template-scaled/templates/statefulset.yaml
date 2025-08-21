@@ -21,7 +21,8 @@ spec:
           image: {{ .Values.statefulset.image | default "doughgle/kafka-kraft" }}
           ports:
             {{- range .Values.statefulset.ports }}
-              - containerPort: {{ .containerPort }}
+              - name: {{ .name | default "kafka-port" }}
+                containerPort: {{ .containerPort }}
             {{- end }}
           env:
             {{- range .Values.statefulset.env }}
