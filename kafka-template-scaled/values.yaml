@@ -55,6 +55,19 @@ consumer:
       cpu: 500m
       memory: 512Mi
 
+producer:
+  name: kafka-producer
+  namespace: kafka
+  replicas: 3
+  containerName: producer
+  image:
+    repository: bitnami/kafka
+    tag: 3.7.0
+  brokerList: kafka-svc.kafka:9092
+  topic: new-demo-topic
+  message: "Hello from new log producer at $(date)"
+  interval: 5
+
 keda:
   namespace: kafka
   enabled: true

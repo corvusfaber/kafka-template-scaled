@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kafka-producer
-  namespace: kafka
+  name: {{ .Values.producer.name }}
+  namespace: {{ .Values.producer.namespace | default "kafka" }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.producer.replicas | default 3 }}
   selector:
     matchLabels:
-      app: kafka-producer
+      app: {{ .Values.producer.name }}
   template:
     metadata:
       labels:
-        app: kafka-producer
+        app: {{ .Values.producer.name }}
     spec:
       containers:
-        - name: producer
-          image: bitnami/kafka:3.7.0
+        - name: {{ .Values.producer.containerName | default "producer" }}
+          image: {{ .Values.producer.image.repository | default "bitnami/kafka" }}:{{ .Values.producer.image.tag | default "3.7.0" }}
           command:
             - "sh"
             - "-c"
             - |
               while true; do
-                echo "Hello from new log producer at $(date)" | \
-                kafka-console-producer.sh --broker-list kafka-svc.kafka:9092 --topic new-demo-topic
-                sleep 5
+                echo {{ .Values.producer.message | default "Hello from new log producer at $(date)" }} | \
+                kafka-console-producer.sh --broker-list {{ .Values.producer.brokerList | default "kafka-svc.kafka:9092" }} --topic {{ .Values.producer.topic | default "new-demo-topic" }}
+                sleep {{ .Values.producer.interval | default 5 }}
               done
