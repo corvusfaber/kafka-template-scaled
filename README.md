@@ -1,20 +1,22 @@
 ````markdown
-# 🐘 Kafka on Kubernetes with Helm and GitHub Actions (KRaft Mode)
+# 🐘 Kafka Producer/Consumer on Kubernetes with Helm + KEDA
 
-This project automates the deployment of an Apache Kafka cluster (in **KRaft mode**, i.e., ZooKeeper-less) to a Kubernetes cluster using **Helm** and **GitHub Actions**. It provisions a `StatefulSet`, exposes it via a `NodePort` service, and verifies Kafka functionality through automated topic/message tests.
+This project provides a **Helm chart** for deploying Apache Kafka workloads (producers, consumers, and supporting jobs) to Kubernetes.  
+It supports **topic bootstrapping**, **autoscaling consumers with KEDA**, and configurable deployments via `values.yaml`.
 
 ---
 
 ## 📦 Features
 
-- 📜 Kafka cluster in **KRaft mode** (ZooKeeper-free)
-- 🪛 Configurable with `values.yaml` (replicas, ports, env vars)
-- 🪄 Helm-based Kubernetes deployment (StatefulSet + PVC + Service)
-- ⚙️ GitHub Actions pipeline to:
-  - Set up Minikube
-  - Deploy Kafka via Helm
-  - Create Kafka topic
-  - Produce & consume Kafka messages
+- 📜 Deploys Kafka **producers** and **consumers** with Helm
+- 🗂️ Optional `Job` for **automatic topic creation**
+- ⚡ **KEDA integration** for autoscaling consumers based on Kafka lag
+- 🪛 Configurable with `values.yaml` (replicas, images, topics, env vars, ports)
+- 🪄 Kubernetes-native objects:
+  - `StatefulSet` for Kafka core
+  - `Deployment` for producers/consumers
+  - `Service` for networking
+  - `ScaledObject` for autoscaling
 
 ---
 
@@ -24,12 +26,13 @@ This project automates the deployment of an Apache Kafka cluster (in **KRaft mod
 .
 ├── helm/
 │   ├── templates/
-│   │   ├── statefulset.yaml     # Kafka StatefulSet definition
-│   │   └── service.yaml         # Kafka Service definition
-│   └── values.yaml              # Helm values (replicas, image, env, ports)
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yaml           # GitHub Actions CI/CD pipeline
+│   │   ├── statefulset.yaml      # Kafka StatefulSet definition
+│   │   ├── service.yaml          # Kafka Service definition
+│   │   ├── producer.yaml         # Kafka Producer Deployment
+│   │   ├── consumer.yaml         # Kafka Consumer Deployment
+│   │   ├── kafka-topic-job.yaml  # Job to create topics
+│   │   └── scaledobject.yaml     # KEDA autoscaling config
+│   └── values.yaml               # Helm values (replicas, image, env, ports)
 ````
 
 ---
@@ -38,25 +41,22 @@ This project automates the deployment of an Apache Kafka cluster (in **KRaft mod
 
 ### 1. Prerequisites
 
-* GitHub repository
-* Kubernetes cluster (or Minikube locally)
+* Kubernetes cluster (local with Minikube, or cloud)
 * [Helm](https://helm.sh/docs/intro/install/) installed
-* GitHub Secrets:
-
-  * `KUBECONFIG_CONTENT`: your base64-encoded `kubeconfig` file
+* (Optional) [KEDA](https://keda.sh) installed for autoscaling
 
 ---
 
-### 2. Deploy Kafka via Helm
+### 2. Deploy via Helm
 
 ```bash
-helm install kafka ./helm -n kafka --create-namespace
+helm install kafka-app ./helm -n kafka --create-namespace
 ```
 
 To upgrade:
 
 ```bash
-helm upgrade kafka ./helm -n kafka
+helm upgrade kafka-app ./helm -n kafka
 ```
 
 ---
@@ -72,6 +72,8 @@ kubectl get svc -n kafka
 
 ## ⚙️ Configuration (`values.yaml`)
 
+### StatefulSet
+
 ```yaml
 statefulset:
   name: kafka
@@ -79,84 +81,81 @@ statefulset:
   replicas: 3
   appname: kafka-app
   serviceName: kafka-svc
-  image: doughgle/kafka-kraft
+  image: bitnami/kafka:3.7.0
   ports:
     - containerPort: 9092
-    - containerPort: 9093
   env:
-    - name: REPLICAS
-      value: '3'
-    - name: SERVICE
-      value: kafka-svc
-    - name: NAMESPACE
-      value: kafka
-    - name: SHARE_DIR
-      value: /mnt/kafka
-    - name: CLUSTER_ID
-      value: bXktY2x1c3Rlci0xMjM0NQ==
     - name: DEFAULT_REPLICATION_FACTOR
-      value: '3'
+      value: "1"
     - name: DEFAULT_MIN_INSYNC_REPLICAS
-      value: '2'
+      value: "1"
+```
 
-service:
-  name: kafka-svc
+### Producer
+
+```yaml
+producer:
+  name: kafka-producer
   namespace: kafka
   replicas: 3
-  appname: kafka-app
-  type: NodePort
-  ports:
-    - name: "9092"
-      port: 9092
-      targetPort: 9092
-      nodePort: 30092
+  image: bitnami/kafka:3.7.0
+  topic: new-demo-topic
+  intervalSeconds: 5
+```
+
+### Consumer
+
+```yaml
+consumer:
+  name: kafka-consumer
+  namespace: kafka
+  replicas: 3
+  image: bitnami/kafka:3.7.0
+  topic: new-demo-topic
+```
+
+### Topic Job
+
+```yaml
+topicJob:
+  enabled: true
+  topicName: new-demo-topic
+  partitions: 3
+  replicationFactor: 1
+```
+
+### KEDA (optional)
+
+```yaml
+keda:
+  enabled: true
+  ScaledObject: kafka-consumer
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  topic: new-demo-topic
+  bootstrapServers: kafka-svc:9092
+  consumerGroup: consumer-group-1
+  lagThreshold: "10"
 ```
 
 ---
 
-## 🔁 CI/CD Pipeline Overview
+## 🔁 Example Workflow (with KEDA)
 
-The CI/CD pipeline is defined in `.github/workflows/ci-cd.yaml`.
-
-### 📌 Trigger
-
-* On push to `master` branch
-
-### 🧪 Steps
-
-1. ✅ Check out the repository
-2. 🐳 Set up Minikube (in GitHub Actions runner)
-3. 🔧 Install and configure `kubectl`
-4. 🔐 Load `KUBECONFIG_CONTENT` from secret
-5. 🚀 Install Kafka via Helm
-6. 📦 Create `test-topic`
-7. 📨 Send a message (`Hello, Kafka!`)
-8. 📬 Consume the message from another pod
-
-### 📄 Key Snippet
-
-```yaml
-- name: Create test-topic on pod
-  run: |
-    kubectl exec kafka-0 -n kafka -- /bin/bash -c "kafka-topics.sh --create --topic test-topic --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1"
-
-- name: Send message to Kafka topic
-  run: |
-    kubectl exec kafka-0 -n kafka -- /bin/bash -c "echo 'Hello, Kafka!' | kafka-console-producer.sh --topic test-topic --bootstrap-server localhost:9092"
-
-- name: Consume message from Kafka topic
-  run: |
-    kubectl exec kafka-1 -n kafka -- /bin/bash -c "kafka-console-consumer.sh --topic test-topic --bootstrap-server localhost:9092 --from-beginning --max-messages 1"
-```
+1. 🐳 Deploy Kafka StatefulSet + Service
+2. 🏗️ Run `Job` to create topic (`new-demo-topic`)
+3. 📤 Deploy **producers** to send messages every few seconds
+4. 📥 Deploy **consumers** to read from topic
+5. ⚡ Enable **KEDA ScaledObject** → consumers autoscale based on lag
 
 ---
 
 ## 🧹 Cleanup
 
-To uninstall Kafka:
+To uninstall:
 
 ```bash
-helm uninstall kafka -n kafka
+helm uninstall kafka-app -n kafka
 kubectl delete namespace kafka
 ```
 
@@ -168,13 +167,8 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 🙋‍♂️ Questions or Contributions?
+## 🙋 Contributions
 
-Feel free to open an issue or submit a pull request if you'd like to improve this setup.
+PRs and issues are welcome! 🚀
 
-```
-
----
-
-Would you like me to export this as a downloadable `README.md` file so you can commit it directly to your repo?
 ```
