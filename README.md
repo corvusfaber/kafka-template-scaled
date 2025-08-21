@@ -145,7 +145,7 @@ keda:
 
 ## 🔁 Example Workflow (with KEDA)
 
-1. 🐳 Deploy Kafka StatefulSet + Service
+1. 🐳 Deploy Kafka StatefulSet + Service (**brokers** )
 2. 🏗️ Run `Job` to create topic (`new-demo-topic`)
 3. 📤 Deploy **producers** to send messages every few seconds
 4. 📥 Deploy **consumers** to read from topic
