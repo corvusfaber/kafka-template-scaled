@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-smoketest
+  namespace: {{ .Values.statefulset.namespace | default "kafka" }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: kafka-smoketest
+          image: confluentinc/cp-kafka:7.5.0
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Creating topic..."
+              kafka-topics --create \
+                --topic {{ .Values.kafka.topic }} \
+                --bootstrap-server kafka-svc.{{ .Values.statefulset.namespace | default "kafka" }}:9092 \
+                --replication-factor {{ .Values.kafka.replicationFactor }} \
+                --partitions {{ .Values.kafka.partitions }} || true
+
+              echo "Producing test message..."
+              echo "{{ .Values.kafka.message }}" | kafka-console-producer \
+                --topic {{ .Values.kafka.topic }} \
+                --bootstrap-server kafka-svc.{{ .Values.statefulset.namespace | default "kafka" }}:9092
+
+              echo "Consuming test message..."
+              kafka-console-consumer \
+                --topic {{ .Values.kafka.topic }} \
+                --bootstrap-server kafka-svc.{{ .Values.statefulset.namespace | default "kafka" }}:9092 \
+                --from-beginning \
+                --max-messages 1
