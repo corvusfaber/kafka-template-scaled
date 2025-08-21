@@ -171,4 +171,3 @@ This project is licensed under the [MIT License](LICENSE).
 
 PRs and issues are welcome! 🚀
 
-```

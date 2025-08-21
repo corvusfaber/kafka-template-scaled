@@ -65,6 +65,20 @@ jobs:
       - name: Verify Kafka service
         run: kubectl get svc kafka-svc -n kafka
 
+      - name: Wait for Kafka readiness
+        run:  |
+          for i in {1..20}; do
+            if kubectl exec kafka-0 -n kafka -- \
+              kafka-broker-api-versions.sh --bootstrap-server kafka-svc.kafka:9092 >/dev/null 2>&1; then
+              echo "✅ Kafka is ready"
+              exit 0
+            fi
+            echo "Waiting for Kafka to become ready..."
+            sleep 5
+          done
+          echo "❌ Kafka did not become ready in time"
+          exit 1
+
       - name: Start minikube service kafka-svc
         run: minikube service kafka-svc --namespace kafka --url
 
@@ -78,4 +92,12 @@ jobs:
 
       - name: Consume message from Kafka topic
         run: |
-             kubectl exec $(kubectl get pods -n kafka -l app=kafka-consumer -o jsonpath='{.items[0].metadata.name}') -n kafka -- /bin/bash -c "kafka-console-consumer.sh --topic test-topic --bootstrap-server kafka-svc.kafka:9092 --from-beginning  --max-messages 1"
+              MESSAGE=$(kubectl exec $(kubectl get pods -n kafka -l app=kafka-consumer -o jsonpath='{.items[0].metadata.name}') -n kafka -- /bin/bash -c "kafka-console-consumer.sh --topic test-topic --bootstrap-server kafka-svc.kafka:9092 --from-beginning  --max-messages 1")
+              echo "Consumed message: $MESSAGE"
+
+              if [ "$MESSAGE" == "Hello, Kafka!" ]; then
+                echo "✅ Message consumed successfully"
+              else
+                echo "❌ Message consumption failed"
+                exit 1
+              fi
