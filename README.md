@@ -8,15 +8,18 @@ It supports **topic bootstrapping**, **autoscaling consumers with KEDA**, and co
 
 ## 📦 Features
 
-- 📜 Deploys Kafka **producers** and **consumers** with Helm
-- 🗂️ Optional `Job` for **automatic topic creation**
-- ⚡ **KEDA integration** for autoscaling consumers based on Kafka lag
-- 🪛 Configurable with `values.yaml` (replicas, images, topics, env vars, ports)
-- 🪄 Kubernetes-native objects:
-  - `StatefulSet` for Kafka core
-  - `Deployment` for producers/consumers
-  - `Service` for networking
-  - `ScaledObject` for autoscaling
+    🐳 Deploys a Kafka cluster (brokers + service) using a StatefulSet
+    📤 Deploys producers that publish messages to topics
+    📥 Deploys consumers that subscribe to topics
+    🗂️ Optional Job for automatic topic creation on startup
+    ⚡ KEDA integration for autoscaling consumers based on Kafka lag
+    🪛 Fully configurable with values.yaml (replicas, images, env vars, topics, ports)
+    🪄 Kubernetes-native objects included:
+          StatefulSet → Kafka brokers
+          Service → internal/external access
+          Deployment → producers and consumers
+          Job → topic creation
+          ScaledObject → KEDA autoscaling
 
 ---
 
