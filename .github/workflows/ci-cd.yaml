@@ -4,7 +4,7 @@ name: CI-CD-node-app
 on:
   push:
     branches:
-      - master
+      - mf-ensure-brokers-are-ready
     
 jobs:
   apply-manifest:
@@ -64,6 +64,20 @@ jobs:
 
       - name: Verify Kafka service
         run: kubectl get svc kafka-svc -n kafka
+
+      - name: Wait for Kafka readiness
+        run:  |
+          for i in {1..20}; do
+            if kubectl exec kafka-0 -n kafka -- \
+              kafka-broker-api-versions.sh --bootstrap-server kafka-svc.kafka:9092 >/dev/null 2>&1; then
+              echo "✅ Kafka is ready"
+              exit 0
+            fi
+            echo "Waiting for Kafka to become ready..."
+            sleep 5
+          done
+          echo "❌ Kafka did not become ready in time"
+          exit 1
 
       - name: Start minikube service kafka-svc
         run: minikube service kafka-svc --namespace kafka --url
