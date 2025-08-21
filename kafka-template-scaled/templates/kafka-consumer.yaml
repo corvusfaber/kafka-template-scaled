@@ -14,18 +14,17 @@ spec:
         app: {{ .Values.consumer.name }}
     spec:
       containers:
-        - name: consumer
-          image: bitnami/kafka:3.7.0
+        - name: {{ .Values.consumer.name }}
+          image: {{ .Values.consumer.image | default "bitnami/kafka:3.7.0" }}
           command:
             - "sh"
             - "-c"
             - |
-              kafka-console-consumer.sh --bootstrap-server kafka-svc.kafka:9092 --topic new-demo-topic --from-beginning
+              kafka-console-consumer.sh --bootstrap-server kafka-svc.kafka:9092 --topic {{ .Values.consumer.topic | default "new-demo-topic" }} --from-beginning {{ .Values.consumer.extraArgs | default "" }}
           resources:
             requests:
-              cpu: 200m
-              memory: 256Mi
+              cpu: {{ .Values.consumer.resources.requests.cpu | default "200m" }}
+              memory: {{ .Values.consumer.resources.requests.memory | default "256Mi" }}
             limits:
-              cpu: 500m
-              memory: 512Mi
-     
+              cpu: {{ .Values.consumer.resources.limits.cpu | default "500m" }}
+              memory: {{ .Values.consumer.resources.limits.memory | default "512Mi" }}
