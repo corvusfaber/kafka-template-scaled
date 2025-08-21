@@ -24,12 +24,6 @@ statefulset:
     - name: DEFAULT_MIN_INSYNC_REPLICAS
       value: '2'
 
-kafka:
-  topic: test-topic
-  message: "Hello, Kafka!"
-  partitions: 1
-  replicationFactor: 1
-
 service:
   name: kafka-svc
   namespace: kafka

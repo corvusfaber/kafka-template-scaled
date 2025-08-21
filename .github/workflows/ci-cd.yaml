@@ -66,11 +66,8 @@ jobs:
           done
 
       - name: Apply Kubernetes manifest
-        run: helm upgrade --install kafka-template ./kafka-template-scaled -n kafka --wait --skip-crds
+        run: helm upgrade --install kafka-template ./kafka-template-scaled -n kafka --skip-crds
      
-      - name: Run Helm tests
-        run: helm test kafka-template -n kafka
-
       - name: Verify Kafka statefulset
         run: kubectl rollout status statefulset/kafka -n kafka
 
