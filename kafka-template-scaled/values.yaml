@@ -47,6 +47,13 @@ consumer:
   image: bitnami/kafka:3.7.0
   topic: new-demo-topic
   extraArgs: "--from-beginning"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
 keda:
   namespace: kafka

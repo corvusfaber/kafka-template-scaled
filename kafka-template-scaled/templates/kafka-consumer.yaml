@@ -23,9 +23,8 @@ spec:
               kafka-console-consumer.sh --bootstrap-server kafka-svc.kafka:9092 --topic {{ .Values.consumer.topic | default "new-demo-topic" }} --from-beginning {{ .Values.consumer.extraArgs | default "" }}
           resources:
             requests:
-              cpu: 200m
-              memory: 256Mi
+              cpu: {{ .Values.consumer.resources.requests.cpu | default "200m" }}
+              memory: {{ .Values.consumer.resources.requests.memory | default "256Mi" }}
             limits:
-              cpu: 500m
-              memory: 512Mi
-     
+              cpu: {{ .Values.consumer.resources.limits.cpu | default "500m" }}
+              memory: {{ .Values.consumer.resources.limits.memory | default "512Mi" }}
